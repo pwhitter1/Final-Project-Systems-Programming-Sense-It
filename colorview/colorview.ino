@@ -59,7 +59,9 @@ void loop() {
 
   delay(60);  // takes 50ms to read 
   
-  tcs.getRawData(&red, &green, &blue, &clear);
+  //tcs.getRawData(&red, &green, &blue, &clear);
+
+  Serial.print("hello");
 
   tcs.setInterrupt(true);  // turn off LED
   
