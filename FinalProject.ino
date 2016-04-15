@@ -7,7 +7,7 @@ char frameBuffer[64];
 #define PIN_SS   10
 
 /* LCD */
-LiquidCrystal lcd(12, 9, 5, 4, 3, 2);
+LiquidCrystal lcd(A0, 9, 5, 4, 3, 2);
 
 //int states[200];
 int score = 0;
