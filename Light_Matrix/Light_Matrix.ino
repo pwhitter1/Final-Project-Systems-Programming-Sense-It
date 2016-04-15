@@ -399,11 +399,11 @@ void oneStrike(int color) {
 }
 
 //displays big red X and a smiley face upon your loss
-void loser(int color) {
+void loser(int color, int color2) {
 
   //Call one strike function three times
   for(int i = 0; i < 3; i++) {
-     oneStrike(30);
+     oneStrike(color2);
      delay(750);
      clearLEDMatrix();
      delay(500);
@@ -437,14 +437,17 @@ void loser(int color) {
   
 }
 
-void winner() {
-  
-}
-
-
 
 void loop(){
 
+  //Purple = 35
+  //Red = 32
+  //Orange = 200
+  //Pinkish-Purple = 69
+  //Neon green = 300
+  //Yellow = 500
+
+  
   button1(35);
   delay(750);
   clearLEDMatrix();
@@ -461,7 +464,7 @@ void loop(){
   delay(750);
   clearLEDMatrix();
 
-  oneStrike(900);
+  oneStrike(32);
   delay(750);
   clearLEDMatrix();
 
@@ -473,7 +476,7 @@ void loop(){
   delay(750);
   clearLEDMatrix();
 
-  square(550);
+  square(69);
   delay(750);
   clearLEDMatrix();
 
@@ -485,23 +488,8 @@ void loop(){
   delay(750);
   clearLEDMatrix();
   
-  loser(500);
+  loser(500, 32);
   delay(750);
   clearLEDMatrix();
 
-
-
-  /*//Cycle through each possible color
-  for(int color=0;color<=255;color++) {
-    // And populate each position of the buffer with one color
-    for(int j=0;j<64;j++) {
-      frameBuffer[j]=j+color;
-    }
-    // Send the frame to the LED Matrix
-    sendFrame(frameBuffer);
-    // Colors are made by blinking the LEDs very fast.
-    // Decreasing this delay too much (or removing it) may lead
-    // to corrupted images.
-    delay(200);
-  }*/
 }
