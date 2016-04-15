@@ -16,6 +16,18 @@
 byte gammatable[256];
 
 
+
+
+/**
+ * Program it in the game so that if the R G B values
+ * are within a specific range, then the test is passed
+ * That means the user put the XXX material in front of the sensor.
+ */
+
+
+
+
+
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 
 void setup() {
@@ -30,9 +42,9 @@ void setup() {
   }
   
   // use these three pins to drive an LED
-  pinMode(redpin, OUTPUT);
-  pinMode(greenpin, OUTPUT);
-  pinMode(bluepin, OUTPUT);
+//  pinMode(redpin, OUTPUT);
+//  pinMode(greenpin, OUTPUT);
+//  pinMode(bluepin, OUTPUT);
   
   // thanks PhilB for this gamma table!
   // it helps convert RGB colors to what humans see
@@ -47,7 +59,7 @@ void setup() {
     } else {
       gammatable[i] = x;      
     }
-    //Serial.println(gammatable[i]);
+    Serial.println(gammatable[i]);
   }
 }
 
@@ -57,11 +69,9 @@ void loop() {
 
   tcs.setInterrupt(false);      // turn on LED
 
-  delay(60);  // takes 50ms to read 
+  delay(200);  // takes 50ms to read 
   
-  //tcs.getRawData(&red, &green, &blue, &clear);
-
-  Serial.print("hello");
+  tcs.getRawData(&red, &green, &blue, &clear);
 
   tcs.setInterrupt(true);  // turn off LED
   
@@ -83,8 +93,8 @@ void loop() {
 
   //Serial.print((int)r ); Serial.print(" "); Serial.print((int)g);Serial.print(" ");  Serial.println((int)b );
 
-  analogWrite(redpin, gammatable[(int)r]);
-  analogWrite(greenpin, gammatable[(int)g]);
-  analogWrite(bluepin, gammatable[(int)b]);
+  //analogWrite(redpin, gammatable[(int)r]);
+  //analogWrite(greenpin, gammatable[(int)g]);
+  //analogWrite(bluepin, gammatable[(int)b]);
 }
 
