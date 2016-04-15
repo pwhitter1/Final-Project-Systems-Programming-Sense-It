@@ -1,4 +1,6 @@
 #include <LiquidCrystal.h>
+#include <Wire.h>
+#include <SoftwareSerial.h>  
 
 /* LED Matrix */
 char frameBuffer[64];
@@ -9,13 +11,22 @@ char frameBuffer[64];
 /* LCD */
 LiquidCrystal lcd(A0, 9, 5, 4, 3, 2);
 
-//int states[200];
-int score = 0;
+/* I2C Arduino Communication */
+int buttonPressed = 0;
 
+/* Software Serial communication */
+int myTxPin = 8;  // Chosen pin for transmitting data
+int myRxPin = 7;  // Chosen pin for receiving data
+SoftwareSerial softSerial(myRxPin, myTxPin);  // Create software serial object
+int sensorPressed = -1; //read from software serial
+
+/* game-related variables */
+int score = 0;
+int state = 0;
 long startTime;
 long timeLimit;
 
-// Send a single byte via SPI, taken from Atmel's datasheet example.
+// Send a single byte via SPI (for LED matrix)
 void sendChar(char cData){
   SPDR = cData;
   while(!(SPSR&(1<<SPIF)));
@@ -49,8 +60,20 @@ void setup() {
   sendChar(1);
   digitalWrite(PIN_SS, HIGH);
   delay(10);
+
+  softSerial.begin(9600);
+
+  Wire.begin(9); 
+  // Attach a function to trigger when something is received.
+  Wire.onReceive(receiveEvent);
   
 
+}
+
+//for I2C arduino communication
+void receiveEvent(int bytes) {
+  buttonPressed = Wire.read();    // read one character from the I2C
+  //Serial.begin(9600);
 }
 
 /* LED Matrix functions */
@@ -256,10 +279,10 @@ void square(int color) {
   frameBuffer[37]=color;
   frameBuffer[45]=color;
 
-  frameBuffer[22]=color;
-  frameBuffer[30]=color;
-  frameBuffer[38]=color;
-  frameBuffer[46]=color;
+//  frameBuffer[22]=color;
+//  frameBuffer[30]=color;
+//  frameBuffer[38]=color;
+//  frameBuffer[46]=color;
 
   sendFrame(frameBuffer);
 }
@@ -425,13 +448,70 @@ void loser(int color) {
 }
 
 //display corresponding shape on the 8x8 LED grid
+/* 0: Arrow - Accelerometer
+ * 1: Firework - Color sensor
+ * 2: Rhombus - Force Sensitive Resistor
+ * 3: Square - Keypad
+ * 4: Triangle - RFID
+ * 5: Top Left Square - Button
+ * 6: Top Right Square - Button
+ * 7: Bottom Left Square - Button
+ * 8: Bottom Right Square - Button
+ */
 void displayShape(int state){
 
-  if(state == 0){
-    arrow(300);
-    delay(500);
-    clearLEDMatrix();
+  switch(state){
+
+    // green arrow: accelerometer
+    case 0:
+      arrow(300);
+      break;
+  
+    // firework: color sensor
+    case 1:
+      firework();
+      break;
+
+    // rhombus: force resistor
+    case 2:
+      diamondRhombus(200);
+      break;
+
+    // square: keypad
+    case 3:
+      square(69);
+      break;
+    
+    // triangle: RFID
+    case 4:
+      triangle(45);
+      break;
+
+    // top left square: button1
+    case 5:
+      button1(35);
+      break;
+    
+    // top right square: button2
+    case 6:
+      button2(35);
+      break;
+
+    // bottom left square: button3
+    case 7:
+      button3(35);
+      break;
+
+    // bottom right square: button4
+    case 8:
+      button4(35);
+      break;
+
   }
+
+   delay(600);
+   clearLEDMatrix();
+  
   
 }
 
@@ -461,9 +541,23 @@ void printTimeLeft(){
   delay(100);
 }
 
+void gameOver(){
+
+  //send score
+  //clear score
+  //restart in 20 seconds
+  
+}
+
 void playButtonGame(){
 
-  
+  int toPress = random(5, 9);
+
+  //read what button player pressed
+
+  //if matches, keep going
+
+  //if don't match, GAME OVER
 
   
 }
@@ -471,13 +565,13 @@ void playButtonGame(){
 void loop() {
 
   int state = 0; //random(5);  //randomly choose next state
-  //states[score] = state;  //add state to array
 
   displayShape(state); //display shape corresponding to state on LED grid
 
+  //Serial.println(buttonPressed);
+  
   lcd.setCursor(0,0);
   lcd.clear();
-  
   delay(500);
   
   startTime = millis();  //start time of current state
@@ -489,15 +583,30 @@ void loop() {
     printTimeLeft(); //print remaining time on LCD
 
     //check software serial input
-
-    //check analog input
-
-    //if input doesn't match state, begin button game
+    if(softSerial.available()){  
+      sensorPressed = (char)softSerial.read();  
+      if(sensorPressed == state){
+        break;
+      }
+      //check for RFID
+      else if(buttonPressed == 4){
+        if(buttonPressed == state){
+          break;
+        }
+      }
+      else{
+        playButtonGame();
+      }
+    }
+    
     //else, increment score and break from while
+   // break;
     
   }
 
-  
+  score++;
+  state++;
+  if(state == 9) state = 0;
 
 
 }
