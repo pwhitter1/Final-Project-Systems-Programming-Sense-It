@@ -3,6 +3,12 @@
 #include <Keypad.h>
 #include "Adafruit_TCS34725.h"
 
+/*
+ * SEE COMMENTS FOR THINGS WE NEED TO MODIFY
+ * 
+ */
+
+
 
 //Software Serial
 int myTxPin = 6;  
@@ -107,9 +113,12 @@ void accelerometerLoop() {
   long xh = Wire.read();
   int x = xh <<8;
   x = x|xl;
-  Serial.println(x);
-  if(x > 10){
+  //Serial.println(x);
+
+  //NEED TO CALLIBRATE THIS EACH TIME
+  if(x > 15 | x < 0) {
     softSerial.print(0);
+    Serial.println("accelerometer works");
   }
 
     softSerial.print( ++counter );
@@ -128,10 +137,10 @@ void colorviewLoop() {
 
   tcs.setInterrupt(true); 
   
-  Serial.print("C:\t"); Serial.print(clear);
-  Serial.print("\tR:\t"); Serial.print(red);
-  Serial.print("\tG:\t"); Serial.print(green);
-  Serial.print("\tB:\t"); Serial.print(blue);
+   //Serial.print("C:\t"); Serial.print(clear);
+  //Serial.print("\tR:\t"); Serial.print(red);
+  //Serial.print("\tG:\t"); Serial.print(green);
+  //Serial.print("\tB:\t"); Serial.print(blue);
 
   uint32_t sum = clear;
   float r, g, b;
@@ -139,29 +148,31 @@ void colorviewLoop() {
   g = green; g /= sum;
   b = blue; b /= sum;
   r *= 256; g *= 256; b *= 256;
-  Serial.print("\t");
-  Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
-  Serial.println();
+  //Serial.print("\t");
+  //Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
+  //Serial.println();
 
-  //ARBITRARY VALUES
-  if(r > 100 && g > 100 && b > 100){
+  //ARBITRARY VALUES - Change these
+  if(red > 100 && green > 100 && blue > 100){
     softSerial.print(1);
+    Serial.println("color sensor works");
   }
 
     softSerial.print( ++counter );
-    delay(500);
+    delay(25);
 }
 
 void forceResistorLoop() {
    fsrReading = analogRead(fsrAnalogPin);
-  Serial.println(fsrReading);
+  //Serial.println(fsrReading);
   if(fsrReading > prevReading+5){
     prevReading = fsrReading;
     softSerial.print(2);
+    Serial.println("force resistor works");
   }
 
   softSerial.print( ++counter );
-  delay(500);
+  delay(25);
   prevReading = fsrReading;
 }
 
@@ -171,10 +182,11 @@ void keypadLoop() {
   char customKey = customKeypad.getKey();
   if(customKey){
     softSerial.print(3);
+    Serial.println("keypad works");
   }
   
   softSerial.print( ++counter );
-  delay(500);
+  delay(25);
 }
 
 
