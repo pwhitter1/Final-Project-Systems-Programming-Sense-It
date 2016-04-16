@@ -1,5 +1,7 @@
 #include <Wire.h>
+#include <SoftwareSerial.h>
 #include "Adafruit_TCS34725.h"
+
 
 // Pick analog outputs, for the UNO these three work well
 // use ~560  ohm resistor between Red & Blue, ~1K for green (its brighter)
@@ -13,12 +15,14 @@
 #define commonAnode true
 
 // our RGB -> eye-recognized gamma color
-byte gammatable[256];
+byte gammatable[256]; 
+
+/*int myTxPin = 7; //Chosen pin for transmitting data
+int myRxPin = 6; //Chosen pin for receiving data
+SoftwareSerial softSerial(myRxPin, myTxPin); //Creat software serial object*/
 
 
-
-
-/**
+/*
  * Program it in the game so that if the R G B values
  * are within a specific range, then the test is passed
  * That means the user put the XXX material in front of the sensor.
@@ -61,6 +65,8 @@ void setup() {
     }
     Serial.println(gammatable[i]);
   }
+
+  //softSerial.begin(9600);
 }
 
 

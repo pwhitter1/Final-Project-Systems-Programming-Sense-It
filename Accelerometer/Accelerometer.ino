@@ -19,7 +19,7 @@ void loop() {
   long xh = Wire.read();
   int x = xh <<8;
   x = x|xl;
- // Serial.println(x);
+  Serial.println(x);
   if(x > 30 || x < 10){
     Serial.println("Accelerometer works!");
   }
