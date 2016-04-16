@@ -15,8 +15,8 @@ LiquidCrystal lcd(A0, 9, 5, 4, 3, 2);
 int buttonPressed = 0;
 
 /* Software Serial communication */
-int myTxPin = 8;  // Chosen pin for transmitting data
-int myRxPin = 7;  // Chosen pin for receiving data
+int myTxPin = 7;  // Chosen pin for transmitting data
+int myRxPin = 8;  // Chosen pin for receiving data
 SoftwareSerial softSerial(myRxPin, myTxPin);  // Create software serial object
 int sensorPressed = -1; //read from software serial
 
@@ -25,6 +25,10 @@ int score = 0;
 int state = 0;
 long startTime;
 long timeLimit;
+
+
+
+
 
 // Send a single byte via SPI (for LED matrix)
 void sendChar(char cData){
@@ -61,14 +65,16 @@ void setup() {
   digitalWrite(PIN_SS, HIGH);
   delay(10);
 
-  softSerial.begin(9600);
+  softSerial.begin(9600); //software serial
 
+  //for i2c arduino communication
   Wire.begin(9); 
-  // Attach a function to trigger when something is received.
   Wire.onReceive(receiveEvent);
+
   
 
 }
+
 
 //for I2C arduino communication
 void receiveEvent(int bytes) {
@@ -409,11 +415,11 @@ void oneStrike(int color) {
 }
 
 //displays big red X and a smiley face upon your loss
-void loser(int color) {
+void loser(int color, int color2) {
 
   //Call one strike function three times
   for(int i = 0; i < 3; i++) {
-     oneStrike(30);
+     oneStrike(color2);
      delay(750);
      clearLEDMatrix();
      delay(500);
@@ -543,33 +549,61 @@ void printTimeLeft(){
 
 void gameOver(){
 
-  //send score
-  //clear score
-  //restart in 20 seconds
+  //send score to SD
+  
+
+  loser(500, 32);
+  delay(700);
+  clearLEDMatrix();
+  delay(10000000);
   
 }
 
 void playButtonGame(){
 
-  int toPress = random(5, 9);
+  int buttonState = random(5, 9); //randomly generate button that player should press
+  
+  int i;
+  for(i = 0; i < 5; i++){ //do 5 rounds of button game
 
-  //read what button player pressed
+    int done = 0;
 
-  //if matches, keep going
+    long buttonStart = millis();
 
-  //if don't match, GAME OVER
+    //give 2 seconds to press button
+    while(millis() - buttonStart >= 2000){
+
+        //game over if player pressed wrong button
+        if(buttonPressed != 0 && buttonPressed != buttonState){
+          gameOver();
+          return;
+        }
+        //go to next round if player pressed right button
+        else if(buttonPressed == buttonState){
+          done = 1;
+          break;
+        }
+     }
+
+     //to check if user didn't press any buttons within time limit
+     if(done == 0){
+        gameOver();
+        return;
+     }
+
+  }
 
   
 }
 
 void loop() {
 
-  int state = 0; //random(5);  //randomly choose next state
+  state = random(5);  //randomly choose next state
 
   displayShape(state); //display shape corresponding to state on LED grid
 
-  //Serial.println(buttonPressed);
-  
+  Serial.println(buttonPressed);
+
   lcd.setCursor(0,0);
   lcd.clear();
   delay(500);
@@ -584,7 +618,10 @@ void loop() {
 
     //check software serial input
     if(softSerial.available()){  
-      sensorPressed = (char)softSerial.read();  
+      sensorPressed = (char)softSerial.read(); 
+      Serial.print("sensor pressesd: ");
+      Serial.println(sensorPressed);
+      //if they pressed the correct sensor, break from loop 
       if(sensorPressed == state){
         break;
       }
@@ -599,14 +636,9 @@ void loop() {
       }
     }
     
-    //else, increment score and break from while
-   // break;
-    
   }
-
-  score++;
-  state++;
-  if(state == 9) state = 0;
+  
+  score++; //increment score
 
 
 }
