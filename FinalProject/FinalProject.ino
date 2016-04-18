@@ -454,11 +454,11 @@ void loser(int color, int color2) {
 }
 
 //display corresponding shape on the 8x8 LED grid
-/* 0: Arrow - Accelerometer
- * 1: Firework - Color sensor
- * 2: Rhombus - Force Sensitive Resistor
- * 3: Square - Keypad
- * 4: Triangle - RFID
+/* 0: Green Arrow - Accelerometer
+ * 1: Multicolor Firework - Color sensor
+ * 2: Orange Rhombus - Force Sensitive Resistor
+ * 3: Purple Square - Keypad
+ * 4: Blue Triangle - RFID
  * 5: Top Left Square - Button
  * 6: Top Right Square - Button
  * 7: Bottom Left Square - Button
@@ -602,7 +602,7 @@ void loop() {
 
   displayShape(state); //display shape corresponding to state on LED grid
 
-  Serial.println(buttonPressed);
+  //Serial.println(buttonPressed);
 
   lcd.setCursor(0,0);
   lcd.clear();
