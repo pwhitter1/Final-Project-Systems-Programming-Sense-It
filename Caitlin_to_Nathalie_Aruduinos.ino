@@ -15,7 +15,7 @@ const int LED_PIN = 13;
 int x = 0;
 
 
-
+ int rfID = 0;
 
 //RFID
 //When you upload sketch, disconnect pin 0
@@ -50,7 +50,7 @@ void setup() {
 }
 
 void loop() {
-  
+  rfID = 0;
   buttonState1 = digitalRead(TOUCH_BUTTON_PIN1);
   buttonState2 = digitalRead(TOUCH_BUTTON_PIN2);
   buttonState3 = digitalRead(TOUCH_BUTTON_PIN3);
@@ -58,7 +58,40 @@ void loop() {
 
   Wire.beginTransmission(9); // transmit to device #9
 
-  if(buttonState1 == HIGH){
+  //RFID------------------------------------
+  char tagString[13];
+  int index = 0;
+  boolean reading = false;
+
+  while(Serial.available()){
+
+    int readByte = Serial.read(); //read next available byte
+
+    if(readByte == 2) reading = true; //begining of tag
+    if(readByte == 3) reading = false; //end of tag
+
+    if(reading && readByte != 2 && readByte != 10 && readByte != 13){
+      //store the tag
+      tagString[index] = readByte;
+      index ++;
+    }
+  }
+/*  if(compareTag(tag, tag1)){
+      Serial.println("rfID");
+      rfID = 5;
+      //Wire.write(5);
+     
+  }*/
+  checkTag(tagString); //Check if it is a match
+  clearTag(tagString); //Clear the char of all value
+  resetReader(); //eset the RFID reader
+ //-------------------------------------------------- 
+   if(rfID == 5){
+     Serial.println("5");
+      Wire.write(5); 
+    }
+   
+   else if(buttonState1 == HIGH){
       digitalWrite(LED_PIN, HIGH);
       Serial.println("8");
       Wire.write(8); 
@@ -87,34 +120,9 @@ void loop() {
       Wire.write(0); 
       }
   
-  //RFID------------------------------------
-  char tagString[13];
-  int index = 0;
-  boolean reading = false;
-
-  while(Serial.available()){
-
-    int readByte = Serial.read(); //read next available byte
-
-    if(readByte == 2) reading = true; //begining of tag
-    if(readByte == 3) reading = false; //end of tag
-
-    if(reading && readByte != 2 && readByte != 10 && readByte != 13){
-      //store the tag
-      tagString[index] = readByte;
-      index ++;
-    }
-  }
-
-  checkTag(tagString); //Check if it is a match
-  //clearTag(tagString); //Clear the char of all value
-  //resetReader(); //eset the RFID reader
- //-------------------------------------------------- 
   
   Wire.endTransmission();    // stop transmitting
   digitalWrite(LED_PIN, LOW);
-  clearTag(tagString); //Clear the char of all value
-  resetReader(); //eset the RFID reader
 }
 
 
@@ -125,7 +133,7 @@ void checkTag(char tag[]){
 //Check the read tag against known tags
 ///////////////////////////////////
 
-  if(strlen(tag) == 0) return; //empty, no need to contunue
+  //if(strlen(tag) == 0) return; //empty, no need to contunue
 
   /*if(compareTag(tag, tag1)){ // if matched tag1, do this
     lightLED(2);
@@ -158,13 +166,12 @@ void checkTag(char tag[]){
     lightLED(11);
 
   }else{*/
-    Serial.println(tag); //read out any unknown tag
+    //Serial.println(tag); //read out any unknown tag
     
   if(compareTag(tag, tag1)){
-      Serial.println("5");
-      Wire.write(5);
-       Wire.write(5);
-        Wire.write(5);
+      Serial.println("rfID");
+      rfID = 5;
+     
   }
 
 }
