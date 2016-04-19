@@ -69,7 +69,6 @@ void setup() {
    Serial.println("No TCS34725 found ... check your connections");
     while (1); // halt!
   }
-  //gamma table to convert RGB colors
   for (int i=0; i<256; i++) {
     float x = i;
     x /= 255;
@@ -98,9 +97,9 @@ void SDCard(int score)
   // Is there even a card?
   if (!digitalRead(cardDetect))
   {
-    Serial.println(F("No card detected. Waiting for card."));
-    while (!digitalRead(cardDetect));
-    delay(250); // 'Debounce insertion'
+    Serial.println(F("No card detected. Too bad."));
+    //while (!digitalRead(cardDetect));
+    //delay(250); // 'Debounce insertion'
   }
 
   // Card seems to exist.  begin() returns failure
@@ -108,7 +107,7 @@ void SDCard(int score)
   if (!SD.begin(chipSelect) && !alreadyBegan)  // begin uses half-speed...
   {
     Serial.println(F("Initialization failed!"));
-    SDCard(score); // Possible infinite retry loop is as valid as anything
+    //SDCard(score); // Possible infinite retry loop is as valid as anything
   }
   else
   {
@@ -151,11 +150,11 @@ void loop() {
   delay(60);  // takes 50ms to read 
   tcs.getRawData(&red, &green, &blue, &clear);
   tcs.setInterrupt(true);  // turn off LED
-  Serial.print("C:\t"); Serial.print(clear);
-  Serial.print("\tR:\t"); Serial.print(red);
-  Serial.print("\tG:\t"); Serial.print(green);
-  Serial.print("\tB:\t"); Serial.print(blue);
-  if(red < 300){
+//  Serial.print("C:\t"); Serial.print(clear);
+//  Serial.print("\tR:\t"); Serial.print(red);
+//  Serial.print("\tG:\t"); Serial.print(green);
+//  Serial.print("\tB:\t"); Serial.print(blue);
+  if(red > 1000){
     softSerial.println(2);
   }
   //some basic hex code for visualization
@@ -165,9 +164,9 @@ void loop() {
   g = green; g /= sum;
   b = blue; b /= sum;
   r *= 256; g *= 256; b *= 256;
-  Serial.print("\t");
-  Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
-  Serial.println();
+//  Serial.print("\t");
+//  Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
+//  Serial.println();
   
   //-------CHECK ACCELEROMETER-------
   Wire.beginTransmission(ADXL_I2C_ADDR);
@@ -182,8 +181,8 @@ void loop() {
   Wire.endTransmission();
   sprintf(toPrint, "X: %8d\tY: %8d\tZ: %8d", x, y, z);
   Serial.println(toPrint);
-  if(x > 40){
-    Serial.println("SENT ONE!!!!!!!!!");
+  if(x > 100 || x < -100){
+    Serial.println("SENT ACCELEROMETER!!!!!!!!!");
     softSerial.println(1);
   }
 
