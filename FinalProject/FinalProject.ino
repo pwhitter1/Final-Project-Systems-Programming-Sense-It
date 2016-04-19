@@ -64,7 +64,7 @@ void setup() {
   sendChar(1);
   digitalWrite(PIN_SS, HIGH);
   delay(10);
-
+  
   softSerial.begin(9600); //software serial
 
   //for i2c arduino communication
@@ -618,8 +618,8 @@ void loop() {
 
     //check software serial input
     if(softSerial.available()){  
-      sensorPressed = (char)softSerial.read(); 
-      Serial.print("sensor pressesd: ");
+      Serial.print("sensor pressed: ");
+      sensorPressed = softSerial.parseInt(); 
       Serial.println(sensorPressed);
       //if they pressed the correct sensor, break from loop 
       if(sensorPressed == state){
@@ -627,6 +627,7 @@ void loop() {
       }
       //check for RFID
       else if(buttonPressed == 4){
+        Serial.println("RFID tapped");
         if(buttonPressed == state){
           break;
         }
