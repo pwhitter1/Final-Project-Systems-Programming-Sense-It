@@ -415,13 +415,11 @@ void oneStrike(int color) {
 //displays big red X and a smiley face upon your loss
 void loser(int color, int color2) {
 
-  //Call one strike function three times
-  for(int i = 0; i < 3; i++) {
-     oneStrike(color2);
-     delay(750);
-     clearLEDMatrix();
-     delay(500);
-  }
+  //Calls one strike function
+  oneStrike(color2);
+  delay(750);
+  clearLEDMatrix();
+  delay(500);
 
   //A smiley face
   //Eye1
@@ -513,7 +511,7 @@ void displayShape(int state){
 
   }
 
-   delay(600);
+   delay(350);
    clearLEDMatrix();
   
   
@@ -521,11 +519,11 @@ void displayShape(int state){
 
 //set time limit for user depending on current score
 void setTimeLimit(){
-  if(score < 30){
+  if(score < 10){
     timeLimit = 5000;
   }
   else{
-    timeLimit = 3000;
+    timeLimit = 4000;
   }
 }
 
@@ -553,6 +551,10 @@ void gameOver(){
   softSerial.print("SCORE ");
   softSerial.println(score);
 
+  lcd.clear();
+  lcd.print("LOSER ");
+  lcd.print(score);
+
   loser(500, 32);
   delay(700);
   clearLEDMatrix();
@@ -562,32 +564,48 @@ void gameOver(){
 
 void playButtonGame(){
 
-  int buttonState = random(5, 9); //randomly generate button that player should press
+  timeLimit = 3000;
   
   int i;
-  for(i = 0; i < 5; i++){ //do 5 rounds of button game
+  for(i = 0; i < 8; i++){ //do 8 rounds of button game
+
+    int buttonState = random(6, 10); //randomly generate button that player should press
+    Serial.print("button: ");
+    Serial.println(buttonState);
+    displayShape(buttonState);
 
     int done = 0;
 
-    long buttonStart = millis();
+    //long buttonStart = millis();
+    startTime = millis();
 
-    //give 2 seconds to press button
-    while(millis() - buttonStart >= 2000){
+    //give 3 seconds to press button
+    while(millis() - startTime <= timeLimit){
+
+      printTimeLeft();
+      
+      if(buttonPressed != 0) {
+        Serial.println(buttonPressed);
+      }
 
         //game over if player pressed wrong button
         if(buttonPressed != 0 && buttonPressed != buttonState){
+          Serial.println("if one");
           gameOver();
           return;
         }
         //go to next round if player pressed right button
         else if(buttonPressed == buttonState){
+           Serial.println("if two");
           done = 1;
+          delay(500);
           break;
         }
      }
 
      //to check if user didn't press any buttons within time limit
      if(done == 0){
+        Serial.println("if three");
         gameOver();
         return;
      }
@@ -599,9 +617,12 @@ void playButtonGame(){
 
 void loop() {
 
-  state = 3;//random(5);  //randomly choose next state
+  state = random(1, 6);  //randomly choose next state
 
   displayShape(state); //display shape corresponding to state on LED grid
+
+  //playButtonGame();
+  //delay(100000);
 
 
   lcd.setCursor(0,0);
@@ -610,6 +631,8 @@ void loop() {
   
   startTime = millis();  //start time of current state
   setTimeLimit();  //time limit for player to complete current state
+
+  int done = 0;
 
   //check for pressed sensors while player has time remaining
   while(millis() - startTime < timeLimit){
@@ -626,22 +649,42 @@ void loop() {
       Serial.println(sensorPressed);
       //if they pressed the correct sensor, break from loop 
       if(sensorPressed == state){
-        gameOver();
+        Serial.print("right sensor ");
+        Serial.println(sensorPressed);
+        done = 1;
         break;
       }
-      //check for RFID
-      else if(buttonPressed == 5){
-        Serial.println("RFID tapped");
+//      //check for RFID
+//      else if(buttonPressed == 5){
+//        Serial.println("RFID tapped");
+//        if(buttonPressed == state){
+//          break;
+//        }
+//      }
+      else if(sensorPressed != 0){
+        Serial.print("wrong sensor ");
+        Serial.println(sensorPressed);
+        playButtonGame();
+        setTimeLimit();
+        done = 1;
+      }
+
+    }
+    //check for RFID
+    else if(buttonPressed == 5){
+      Serial.println("RFID tapped");
         if(buttonPressed == state){
+          done = 1;
           break;
         }
-      }
-//      else{
-//        Serial.println("button game");
-//        playButtonGame();
-//      }
     }
     
+  }
+
+  //if time ran out and player pressed nothing
+  if(done == 0){
+    playButtonGame();
+    setTimeLimit();
   }
   
   score++; //increment score
