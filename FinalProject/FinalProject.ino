@@ -545,19 +545,17 @@ void printTimeLeft(){
 
 void gameOver(){
 
+  lcd.clear();
+  lcd.print("LOSER!");
+
+  loser(500, 32);
+
   //send score to SD
   score++;
   score = score * 1000;
   softSerial.print("SCORE ");
   softSerial.println(score);
-
-  lcd.clear();
-  lcd.print("LOSER ");
-  lcd.print(score);
-
-  loser(500, 32);
-  delay(700);
-  clearLEDMatrix();
+  
   delay(10000000);
   
 }
@@ -618,7 +616,11 @@ void playButtonGame(){
 void loop() {
 
   state = random(1, 6);  //randomly choose next state
-
+  if(score == 3){
+    state = 2;
+  }
+  Serial.print("state: ");
+  Serial.println(state);
   displayShape(state); //display shape corresponding to state on LED grid
 
   //playButtonGame();
@@ -637,7 +639,7 @@ void loop() {
   //check for pressed sensors while player has time remaining
   while(millis() - startTime < timeLimit){
 
-      Serial.println(buttonPressed);
+      //Serial.println(buttonPressed);
 
 
     printTimeLeft(); //print remaining time on LCD
@@ -667,17 +669,19 @@ void loop() {
         playButtonGame();
         setTimeLimit();
         done = 1;
+        break;
       }
 
     }
     //check for RFID
-    else if(buttonPressed == 5){
-      Serial.println("RFID tapped");
+    //else if(buttonPressed == 5){
+      //Serial.println("RFID tapped");
+      //Serial.println(buttonPressed);
         if(buttonPressed == state){
           done = 1;
           break;
         }
-    }
+    //}
     
   }
 
