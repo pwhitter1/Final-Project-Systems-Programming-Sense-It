@@ -131,7 +131,7 @@ void colorviewLoop() {
 
   tcs.setInterrupt(false);      
 
-  delay(200); 
+  //delay(200); 
   
   tcs.getRawData(&red, &green, &blue, &clear);
 
@@ -159,7 +159,7 @@ void colorviewLoop() {
   }
 
     softSerial.print( ++counter );
-    delay(25);
+    //delay(25);
 }
 
 void forceResistorLoop() {
@@ -172,7 +172,7 @@ void forceResistorLoop() {
   }
 
   softSerial.print( ++counter );
-  delay(25);
+  //delay(25);
   prevReading = fsrReading;
 }
 
@@ -185,8 +185,8 @@ void keypadLoop() {
     Serial.println("keypad works");
   }
   
-  softSerial.print( ++counter );
-  delay(25);
+  //softSerial.print( ++counter );
+  //delay(25);
 }
 
 

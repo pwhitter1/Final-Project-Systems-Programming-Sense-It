@@ -62,6 +62,7 @@ void loop()
 
   if (Serial.available() > 0)
   {
+
     readByte();
 
     if (index == BUFFER_SIZE)
