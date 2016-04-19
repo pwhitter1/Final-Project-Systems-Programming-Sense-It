@@ -15,8 +15,8 @@ LiquidCrystal lcd(A0, 9, 5, 4, 3, 2);
 int buttonPressed = 0;
 
 /* Software Serial communication */
-int myTxPin = 7;  // Chosen pin for transmitting data
-int myRxPin = 8;  // Chosen pin for receiving data
+int myTxPin = 8;  // Chosen pin for transmitting data
+int myRxPin = 7;  // Chosen pin for receiving data
 SoftwareSerial softSerial(myRxPin, myTxPin);  // Create software serial object
 int sensorPressed = -1; //read from software serial
 
@@ -37,8 +37,6 @@ void sendChar(char cData){
 }
 
 void setup() {
-
-  Serial.begin(9600);
 
   //set up LCD
   lcd.begin(16, 2);
@@ -65,13 +63,13 @@ void setup() {
   digitalWrite(PIN_SS, HIGH);
   delay(10);
   
-  softSerial.begin(9600); //software serial
-
   //for i2c arduino communication
   Wire.begin(9); 
   Wire.onReceive(receiveEvent);
 
   
+  Serial.begin(9600);
+  softSerial.begin(9600); //software serial
 
 }
 
@@ -454,62 +452,62 @@ void loser(int color, int color2) {
 }
 
 //display corresponding shape on the 8x8 LED grid
-/* 0: Green Arrow - Accelerometer
- * 1: Multicolor Firework - Color sensor
- * 2: Orange Rhombus - Force Sensitive Resistor
- * 3: Purple Square - Keypad
- * 4: Blue Triangle - RFID
- * 5: Top Left Square - Button
- * 6: Top Right Square - Button
- * 7: Bottom Left Square - Button
- * 8: Bottom Right Square - Button
+/* 1: Green Arrow - Accelerometer
+ * 2: Multicolor Firework - Color sensor
+ * 3: Orange Rhombus - Force Sensitive Resistor
+ * 4: Purple Square - Keypad
+ * 5: Blue Triangle - RFID
+ * 6: Top Left Square - Button
+ * 7: Top Right Square - Button
+ * 8: Bottom Left Square - Button
+ * 9: Bottom Right Square - Button
  */
 void displayShape(int state){
 
   switch(state){
 
     // green arrow: accelerometer
-    case 0:
+    case 1:
       arrow(300);
       break;
   
     // firework: color sensor
-    case 1:
+    case 2:
       firework();
       break;
 
     // rhombus: force resistor
-    case 2:
+    case 3:
       diamondRhombus(200);
       break;
 
     // square: keypad
-    case 3:
+    case 4:
       square(69);
       break;
     
     // triangle: RFID
-    case 4:
+    case 5:
       triangle(45);
       break;
 
     // top left square: button1
-    case 5:
+    case 6:
       button1(35);
       break;
     
     // top right square: button2
-    case 6:
+    case 7:
       button2(35);
       break;
 
     // bottom left square: button3
-    case 7:
+    case 8:
       button3(35);
       break;
 
     // bottom right square: button4
-    case 8:
+    case 9:
       button4(35);
       break;
 
@@ -550,7 +548,10 @@ void printTimeLeft(){
 void gameOver(){
 
   //send score to SD
-  
+  score++;
+  score = score * 1000;
+  softSerial.print("SCORE ");
+  softSerial.println(score);
 
   loser(500, 32);
   delay(700);
@@ -598,11 +599,10 @@ void playButtonGame(){
 
 void loop() {
 
-  state = random(5);  //randomly choose next state
+  state = 3;//random(5);  //randomly choose next state
 
   displayShape(state); //display shape corresponding to state on LED grid
 
-  //Serial.println(buttonPressed);
 
   lcd.setCursor(0,0);
   lcd.clear();
@@ -614,6 +614,9 @@ void loop() {
   //check for pressed sensors while player has time remaining
   while(millis() - startTime < timeLimit){
 
+      Serial.println(buttonPressed);
+
+
     printTimeLeft(); //print remaining time on LCD
 
     //check software serial input
@@ -623,18 +626,20 @@ void loop() {
       Serial.println(sensorPressed);
       //if they pressed the correct sensor, break from loop 
       if(sensorPressed == state){
+        gameOver();
         break;
       }
       //check for RFID
-      else if(buttonPressed == 4){
+      else if(buttonPressed == 5){
         Serial.println("RFID tapped");
         if(buttonPressed == state){
           break;
         }
       }
-      else{
-        playButtonGame();
-      }
+//      else{
+//        Serial.println("button game");
+//        playButtonGame();
+//      }
     }
     
   }
