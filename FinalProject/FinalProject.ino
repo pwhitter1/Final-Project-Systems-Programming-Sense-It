@@ -1,3 +1,10 @@
+/* Group 10
+ * Nathalie Mitchell, Aderemi Hanson-Atewologun, Caitlin Whitter
+ * Final Project: Sense It!
+ * This sketch controls the  master arduino that runs the logic of the game.
+ * It determines sensors/buttons to be pressed, keeps track of score, displays to LED and LCD, etc.
+ */
+
 #include <LiquidCrystal.h>
 #include <Wire.h>
 #include <SoftwareSerial.h>  
@@ -27,9 +34,6 @@ long startTime;
 long timeLimit;
 
 
-
-
-
 // Send a single byte via SPI (for LED matrix)
 void sendChar(char cData){
   SPDR = cData;
@@ -55,7 +59,7 @@ void setup() {
   pinMode(PIN_SS, OUTPUT);
   digitalWrite(PIN_SS, HIGH); // de-assert SS
   delay(500); // delay as the LED Matrix datasheet's recommends
-
+  
   digitalWrite(PIN_SS, LOW);
   delay(500);
   sendChar('%');
@@ -63,11 +67,10 @@ void setup() {
   digitalWrite(PIN_SS, HIGH);
   delay(10);
   
-  //for i2c arduino communication
+  //for I2C arduino communication
   Wire.begin(9); 
   Wire.onReceive(receiveEvent);
 
-  
   Serial.begin(9600);
   softSerial.begin(9600); //software serial
 
@@ -77,7 +80,6 @@ void setup() {
 //for I2C arduino communication
 void receiveEvent(int bytes) {
   buttonPressed = Wire.read();    // read one character from the I2C
-  //Serial.begin(9600);
 }
 
 /* LED Matrix functions */
@@ -193,7 +195,6 @@ void button4(int color) {
 }
 
 //displays a diamond-rhombus
-//FILL THESE IN
 void diamondRhombus(int color) {
   //Fill in everything
   for(int j=0;j<64;j++) {
@@ -282,11 +283,6 @@ void square(int color) {
   frameBuffer[29]=color;
   frameBuffer[37]=color;
   frameBuffer[45]=color;
-
-//  frameBuffer[22]=color;
-//  frameBuffer[30]=color;
-//  frameBuffer[38]=color;
-//  frameBuffer[46]=color;
 
   sendFrame(frameBuffer);
 }
@@ -378,11 +374,9 @@ void arrow(int color) {
 //Clear the LED Matrix of all color in order to show the next grid of color
 void clearLEDMatrix() {
     int color = 0;
-  
     for(int j=0;j<64;j++) {
       frameBuffer[j]=color;
     }
-
     sendFrame(frameBuffer);
 }
 
@@ -442,7 +436,6 @@ void loser(int color, int color2) {
   frameBuffer[5]=color;
   frameBuffer[54]=color;
   frameBuffer[61]=color;
-
 
   sendFrame(frameBuffer);
   delay(2000);
@@ -510,11 +503,8 @@ void displayShape(int state){
       break;
 
   }
-
    delay(350);
    clearLEDMatrix();
-  
-  
 }
 
 //set time limit for user depending on current score
@@ -522,8 +512,12 @@ void setTimeLimit(){
   if(score < 10){
     timeLimit = 5000;
   }
-  else{
+  //decrease time limit as score increases
+  else if(score < 20){
     timeLimit = 4000;
+  }
+  else{
+    timeLimit = 3000;
   }
 }
 
@@ -543,6 +537,7 @@ void printTimeLeft(){
   delay(100);
 }
 
+//when player loses, display X and :) and send score to SD card
 void gameOver(){
 
   lcd.clear();
@@ -556,13 +551,14 @@ void gameOver(){
   softSerial.print("SCORE ");
   softSerial.println(score);
   
-  delay(10000000);
+  while(1);  //halt, stop game
   
 }
 
+//algorithm for button game ("whack a mole")
 void playButtonGame(){
 
-  timeLimit = 3000;
+  timeLimit = 3000; //3 seconds to press each button
   
   int i;
   for(i = 0; i < 8; i++){ //do 8 rounds of button game
@@ -570,9 +566,9 @@ void playButtonGame(){
     int buttonState = random(6, 10); //randomly generate button that player should press
     Serial.print("button: ");
     Serial.println(buttonState);
-    displayShape(buttonState);
+    displayShape(buttonState);  //display selected button on LED
 
-    int done = 0;
+    int done = 0; //to check if button was pressed in time limit
 
     //long buttonStart = millis();
     startTime = millis();
@@ -580,21 +576,15 @@ void playButtonGame(){
     //give 3 seconds to press button
     while(millis() - startTime <= timeLimit){
 
-      printTimeLeft();
-      
-      if(buttonPressed != 0) {
-        Serial.println(buttonPressed);
-      }
+      printTimeLeft();  //print remaining time on LCD
 
         //game over if player pressed wrong button
         if(buttonPressed != 0 && buttonPressed != buttonState){
-          Serial.println("if one");
           gameOver();
           return;
         }
         //go to next round if player pressed right button
         else if(buttonPressed == buttonState){
-           Serial.println("if two");
           done = 1;
           delay(500);
           break;
@@ -603,69 +593,46 @@ void playButtonGame(){
 
      //to check if user didn't press any buttons within time limit
      if(done == 0){
-        Serial.println("if three");
         gameOver();
         return;
      }
-
-  }
-
-  
+  } 
 }
 
 void loop() {
 
   state = random(1, 6);  //randomly choose next state
-  if(score == 3){
-    state = 2;
-  }
-  Serial.print("state: ");
-  Serial.println(state);
+  
   displayShape(state); //display shape corresponding to state on LED grid
 
-  //playButtonGame();
-  //delay(100000);
-
-
-  lcd.setCursor(0,0);
+  lcd.setCursor(0,0); //clear LCD to prepare to display time
   lcd.clear();
   delay(500);
   
   startTime = millis();  //start time of current state
   setTimeLimit();  //time limit for player to complete current state
 
-  int done = 0;
+  int done = 0; //to check whether a sensor was pressed in time limit
 
   //check for pressed sensors while player has time remaining
   while(millis() - startTime < timeLimit){
-
-      //Serial.println(buttonPressed);
-
 
     printTimeLeft(); //print remaining time on LCD
 
     //check software serial input
     if(softSerial.available()){  
-      Serial.print("sensor pressed: ");
       sensorPressed = softSerial.parseInt(); 
-      Serial.println(sensorPressed);
       //if they pressed the correct sensor, break from loop 
       if(sensorPressed == state){
-        Serial.print("right sensor ");
-        Serial.println(sensorPressed);
+//        Serial.print("right sensor ");
+//        Serial.println(sensorPressed);
         done = 1;
         break;
       }
-//      //check for RFID
-//      else if(buttonPressed == 5){
-//        Serial.println("RFID tapped");
-//        if(buttonPressed == state){
-//          break;
-//        }
-//      }
+      //if they pressed a sensor but it wasn't the right one
       else if(sensorPressed != 0){
-        Serial.print("wrong sensor ");
-        Serial.println(sensorPressed);
+//        Serial.print("wrong sensor ");
+//        Serial.println(sensorPressed);
         playButtonGame();
         setTimeLimit();
         done = 1;
@@ -673,25 +640,21 @@ void loop() {
       }
 
     }
-    //check for RFID
-    //else if(buttonPressed == 5){
-      //Serial.println("RFID tapped");
-      //Serial.println(buttonPressed);
-        if(buttonPressed == state){
-          done = 1;
-          break;
-        }
-    //}
-    
+    //check of RFID was tapped (read from I2C communication)
+    if(buttonPressed == state){
+        done = 1;
+        break;
+    }
+  
   }
 
   //if time ran out and player pressed nothing
   if(done == 0){
-    playButtonGame();
-    setTimeLimit();
+    playButtonGame(); //trigger the button game
+    setTimeLimit();   //after button game, reset time limit back to normal
   }
   
-  score++; //increment score
+  score++; //increment score each round
 
 
 }

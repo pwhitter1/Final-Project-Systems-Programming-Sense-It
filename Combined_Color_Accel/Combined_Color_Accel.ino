@@ -1,3 +1,12 @@
+/* Group 10
+ * Nathalie Mitchell, Aderemi Hanson-Atewologun, Caitlin Whitter
+ * Final Project: Sense It!
+ * This sketch controls the arduino that is connected to the sensors:
+ * accelerometer, color sensor, force sensitive resistor, keypad.
+ * It determines sensors that were pressed,
+ * and sends this information to the master arduino via software serial.
+ */
+
 #include <Wire.h>
 #include <Keypad.h>
 #include <SoftwareSerial.h>
@@ -5,14 +14,13 @@
 #include <SD.h>
 #include "Adafruit_TCS34725.h"
 
+//Accelerometer
 #define ADXL_I2C_ADDR 0x1D
 #define DATAX0_ADDR 0x32
-
-//Accelerometer
 int x, y, z; 
 char toPrint[50]; // Formatted accelerometer output
 
-//Color sensor
+//Color Sensor
 byte gammatable[256];
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 
@@ -41,7 +49,7 @@ int fsrReading;
 int prevReading = 3000;
 int callnum = 0;
 
-//SD card
+//SD Card
 File fd;
 const uint8_t BUFFER_SIZE = 20;
 char fileName[] = "demoFile.txt"; // SD library only supports up to 8.3 names
@@ -52,7 +60,6 @@ const uint8_t cardDetect = 9;
 enum states: uint8_t { NORMAL, E, EO };
 uint8_t state = NORMAL;
 bool alreadyBegan = false;  // SD.begin() misbehaves if not first call
-
 
 
 void setup() {
@@ -90,6 +97,7 @@ void setup() {
   
 }
 
+//writes player score to the SD card
 void SDCard(int score)
 {
   Serial.print(F("Initializing SD card..."));
@@ -141,7 +149,12 @@ void SDCard(int score)
 
 
 
-
+/*
+ * for each sensor, checks whether it was triggered.
+ * if it was triggered, sends corresponding value to master arduino,
+ * (via software serial).
+ * so the master arduino can determine whether correct sensor was pressed.
+ */
 void loop() {
   
   //-------CHECK COLOR SENSOR--------
@@ -150,10 +163,10 @@ void loop() {
   delay(60);  // takes 50ms to read 
   tcs.getRawData(&red, &green, &blue, &clear);
   tcs.setInterrupt(true);  // turn off LED
-  Serial.print("C:\t"); Serial.print(clear);
-  Serial.print("\tR:\t"); Serial.print(red);
-  Serial.print("\tG:\t"); Serial.print(green);
-  Serial.print("\tB:\t"); Serial.print(blue);
+//  Serial.print("C:\t"); Serial.print(clear);
+//  Serial.print("\tR:\t"); Serial.print(red);
+//  Serial.print("\tG:\t"); Serial.print(green);
+//  Serial.print("\tB:\t"); Serial.print(blue);
   if(red > 1000){
     softSerial.println(2);
   }
@@ -164,9 +177,9 @@ void loop() {
   g = green; g /= sum;
   b = blue; b /= sum;
   r *= 256; g *= 256; b *= 256;
-  Serial.print("\t");
-  Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
-  Serial.println();
+//  Serial.print("\t");
+//  Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
+//  Serial.println();
   
   //-------CHECK ACCELEROMETER-------
   Wire.beginTransmission(ADXL_I2C_ADDR);
@@ -180,9 +193,9 @@ void loop() {
   z = Wire.read() | (((int)Wire.read()) << 8);
   Wire.endTransmission();
   sprintf(toPrint, "X: %8d\tY: %8d\tZ: %8d", x, y, z);
-  Serial.println(toPrint);
+  //Serial.println(toPrint);
   if(x > 80 || x < -80){
-    Serial.println("SENT ACCELEROMETER!!!!!!!!!");
+    //Serial.println("SENT ACCELEROMETER!!!!!!!!!");
     softSerial.println(1);
   }
 
@@ -190,33 +203,31 @@ void loop() {
   char customKey = customKeypad.getKey();
   if(customKey){
     softSerial.println(4);
-    Serial.println("keypad works");
+    //Serial.println("keypad works");
   }
-
 
   //-------CHECK FSR----------
   fsrReading = analogRead(fsrAnalogPin);
   if(fsrReading > prevReading+5){
     prevReading = fsrReading;
     softSerial.println(3);
-    Serial.println("force resistor works");
+    //Serial.println("force resistor works");
   }
   prevReading = fsrReading;
 
-
   int score = 0;
 
+  //read from software serial to see if player score was sent
   if(softSerial.available()){
     score = softSerial.parseInt();
     if(score >= 1000){
       score = score / 1000;
       score = score - 1;
-      Serial.print("SCORE SCORE SCORE:");
-      Serial.println(score);
+//      Serial.print("SCORE SCORE SCORE:");
+//      Serial.println(score);
       SDCard(score);
     }
   }
-  
   
   delay(250);
 }

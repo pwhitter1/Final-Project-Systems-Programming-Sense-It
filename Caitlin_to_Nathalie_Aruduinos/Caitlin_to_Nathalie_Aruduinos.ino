@@ -1,4 +1,10 @@
-// Include the required Wire library for I2C<br>#include 
+/* Group 10
+ * Nathalie Mitchell, Aderemi Hanson-Atewologun, Caitlin Whitter
+ * Final Project: Sense It!
+ * This sketch controls the arduino that is connected to the buttons and the RFID.
+ * When something is pressed, it sends this information to the master arduino
+ * via I2C communication.
+ */
 #include <Wire.h>
 
 // Constants
@@ -14,8 +20,7 @@ const int LED_PIN = 13;
 
 int x = 0;
 
-
- int rfID = 0;
+int rfID = 0;
 
 //RFID
 //When you upload sketch, disconnect pin 0
@@ -88,33 +93,37 @@ void loop() {
  //-------------------------------------------------- 
    if(rfID == 5){
      Serial.println("5");
-      Wire.write(5); 
+      Wire.write(5);  //signal to master arduino that RFID was tapped
     }
-   
+   //signal to master arduino that button 1 was pressed
    else if(buttonState1 == HIGH){
       digitalWrite(LED_PIN, HIGH);
       Serial.println("6");
       Wire.write(6); 
    }
-
+   
+  //signal to master arduino that button 2 was pressed
    else if(buttonState2 == HIGH){
       digitalWrite(LED_PIN, HIGH);
       Serial.println("7");
       Wire.write(7); 
     }
 
+    //signal to master arduino that button 3 was pressed
     else if(buttonState3 == HIGH){
       digitalWrite(LED_PIN, HIGH);
       Serial.println("8");
       Wire.write(8); 
     }
 
+  //signal to master arduino that button 4 was pressed
    else if(buttonState4 == HIGH){
       digitalWrite(LED_PIN, HIGH);
       Serial.println("9");
       Wire.write(9); 
     }
 
+  //as a default, send 0 value
    else{
       Serial.println("0");
       Wire.write(0); 
@@ -175,17 +184,6 @@ void checkTag(char tag[]){
   }
 
 }
-
-/*void lightLED(int pin){
-///////////////////////////////////
-//Turn on LED on pin "pin" for 250ms
-///////////////////////////////////
-  Serial.println(pin);
-
-  digitalWrite(pin, HIGH);
-  delay(250);
-  digitalWrite(pin, LOW);
-}*/
 
 void resetReader(){
 ///////////////////////////////////
